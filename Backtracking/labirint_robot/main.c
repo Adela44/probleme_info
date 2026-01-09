@@ -1,9 +1,10 @@
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-const int di[] = {0,0,1,-1, 1, 1, -1, -1};
-const int dj[] = {1,-1,0,0, -1, 1,  -1, 1};
+const int di[] = {0,0,1,-1};
+const int dj[] = {1,-1,0,0};
 
 typedef struct Matrice {
     int n, m;
@@ -11,6 +12,12 @@ typedef struct Matrice {
     char b[21][21];
     char sol[21][21];
 }Matrice;
+
+typedef struct Teleport {
+    int i, j;
+}Teleport;
+
+
 void afisare_matrice(char a[][21], int n, int m);
 
 void copiere_sol(Matrice *mat) {
@@ -21,7 +28,7 @@ void copiere_sol(Matrice *mat) {
     }
 }
 
-void Bk(Matrice *mat, int i, int j, int baterie, int pas) {
+void Bk(Matrice *mat, Teleport *t, int i, int j, int baterie, int pas) {
     static int minim = 10000;
     if (i < 0 || i >= mat->n || j < 0 || j >= mat->m) {
         return;
@@ -46,9 +53,13 @@ void Bk(Matrice *mat, int i, int j, int baterie, int pas) {
         }
     }
     else {
-        for (int k = 0; k < 8; k ++) {
-            Bk(mat, i + di[k], j + dj[k], baterie - 1, pas + 1);
+        if (isdigit(mat->a[i][j])) {
+            Bk(mat, t, t[i].i, t[j].j, baterie, pas + 1);
         }
+        for (int k = 0; k < 4; k ++) {
+            Bk(mat, t, i + di[k], j + dj[k], baterie - 1, pas + 1);
+        }
+
     }
     mat->b[i][j] ='.';
 
@@ -63,13 +74,15 @@ void afisare_matrice(char a[][21], int n, int m) {
     }
 }
 
-void init_matrice(char b[][21], int n, int m) {
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < m; j++) {
-            b[i][j] = '.';
+void init_matrice(Matrice *mat) {
+    for (int i = 0; i < mat->n; i++) {
+        for (int j = 0; j < mat->m; j++) {
+            mat->b[i][j] = '.';
         }
     }
+
 }
+
 
 void cautare_val(Matrice *mat, int *is, int *js) {
     for (int i = 0; i < mat->n; i++) {
@@ -83,6 +96,48 @@ void cautare_val(Matrice *mat, int *is, int *js) {
     }
 }
 
+/*
+  Daca avem 1 pe pozitiile (0,6) apoi (0,9), vom asocia:
+  t[0].i = 0;
+  t[6].j = 9;
+
+  t[0].i = 0;
+  t[9].j = 6;
+
+  Astfel, la teleportare sa "sarim" direct pe pozitia corecta
+ */
+
+
+void pereche(Matrice *mat, Teleport *t) {
+    int f[10];
+    for (int i = 0; i < 10; i ++) {
+        f[i] = -1;
+    }
+    for (int i = 0; i < mat->n; i++) {
+        for (int j = 0; j < mat->m; j++) {
+            if (isdigit(mat->a[i][j])) {
+               int val = (int)(mat->a[i][j] - '0');
+               if (f[val] == -1) {
+                   t[val].i = i; //tinem minte temporar
+                   t[val].j = j;
+                   f[val] = val;
+               }
+               else {
+                    if (f[val] == val) {
+                        int auxi = t[val].i; //poz i primul gasit
+                        int auxj = t[val].j; //poz j primul gasit
+                        t[i].i = t[val].i;  //coord2 -> coord1
+                        t[j].j = t[val].j;
+                        t[auxi].i = i; //coord1 -> coord2
+                        t[auxj].j = j;
+                        printf("%d %d, %d %d\n", t[auxi].i, t[auxj].j, t[i].i, t[j].j);
+                    }
+                }
+            }
+        }
+    }
+
+}
 int main(int argc, char **argv) {
     //matricea poate fi de max 20x20
      if (argc != 2) {
@@ -116,10 +171,13 @@ int main(int argc, char **argv) {
         i++;
     }
     mat->n = i;
-    init_matrice(mat->b, mat->n, mat->m);
+
     int is, js;
+    Teleport t[10];
+    init_matrice(mat);
     cautare_val(mat, &is, &js);
-    Bk(mat, is, js, 5, 1);
+    pereche(mat, t);
+    Bk(mat, t, is, js, 5, 1);
     afisare_matrice(mat->sol, mat->n, mat->m);
     free(mat);
     fclose(f);
