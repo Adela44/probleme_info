@@ -271,5 +271,6 @@ int main(int argc, const char * argv[]) {
     }
     printCod(head);
     eliberare_cod(head);
+    fclose(f);
     return 0;
 }
