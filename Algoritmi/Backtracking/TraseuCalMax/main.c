@@ -1,110 +1,116 @@
 #include <stdio.h>
 #include <stdlib.h>
-
-
-const int dx[] = {-2,-2,-1,-1,1, 1,2, 2};
-const int dy[] = {1, -1, 2,-2,2,-2,1,-1};
+const int di[]= {-1, -2, -2, -1, 1, 2, 2, 1};
+const int dj[]= {2, 1, -1, -2, -2, -1, 1, 2};
 
 typedef struct Matrice {
-    int **a, **b, **c;
     int n, m;
+    int a[10][10];
+    int b[10][10];
+    int c[10][10];
 }Matrice;
 
-void copiere_sol(Matrice mat) {
-    for (int i = 0; i < mat.n; i++) {
-        for (int j = 0; j < mat.m; j++) {
-            mat.c[i][j] = mat.b[i][j];
-        }
+/*
+ * Putem folosi Bk in plan pentru ca:
+   - lucram cu un tablou bidimensional (matrice)
+   - dimensiunea tabloului este fixa n x m
+   - elementele tabloului apartin unei multimi finite
+        + la fiecare pas putem face un nr maxim (finit) de 8 pasi
+ */
+
+void afisare_matrice(int (*a)[10], int n, int m, FILE *out);
+void retine_solutia(Matrice *mat);
+
+int valid(Matrice *mat, int i, int j, int *sol) {
+    if (i < 0 || j < 0 || i >= mat->n || j >= mat->m) { //ne incadram in dimensiunea matricei
+        return 0;
     }
+    if (mat->a[i][j] != 0 || mat->b[i][j] != 0) { //trebuie sa fie pozitie valida
+        return 0;
+    }
+    return 1;
 }
 
-void Bk(Matrice mat, int i, int j, int pas) {
-    static int maxi = -1;
-    if (i < 0 || j < 0 || i >= mat.n || j >= mat.m || mat.a[i][j] != 0 || mat.b[i][j] != 0) {
+int solutie(Matrice *mat, int i, int j) {
+    if (i == mat->n-1 && j == mat->m-1) { //daca am ajuns pe poz de final, return 1 -> avem sol
+        return 1;
+    }
+    return 0;
+}
+
+void Bk(Matrice *mat, int i, int j, int pas, int *sol, FILE *out) {
+    static int maxim = -1;
+    if (!valid(mat, i, j, sol)) {
         return;
     }
-    mat.b[i][j] = pas;
-    if (i == mat.n-1 && j == mat.m-1) {
-        if (pas > maxi) {
-            maxi = pas;
-            copiere_sol(mat);
+    mat->b[i][j] = pas;
+    if (solutie(mat, i, j)) {
+        *sol = *sol + 1;
+        if (pas > maxim) {
+            maxim = pas;
+            retine_solutia(mat);
         }
     }
-    else {
-        for (int k = 0; k < 8; k++) {
-            Bk(mat, i+dx[k], j+dy[k], pas+1);
-        }
+    for (int k = 0; k < 8; k ++) {
+         Bk(mat, i + di[k], j + dj[k], pas + 1, sol, out);
     }
-    mat.b[i][j] = 0;
+    mat->b[i][j] = 0;
 }
 
 
-void eliberare(int **a, int n) {
+void construire_matrice(Matrice *mat, FILE *f) {
+    for (int i = 0; i < mat->n; i ++) {
+        for (int j = 0; j < mat->m; j ++) {
+            fscanf(f, "%d", &mat->a[i][j]);
+            mat->b[i][j] = 0;
+            mat->c[i][j] = 0;
+        }
+    }
+}
+
+void afisare_matrice(int (*a)[10], int n, int m, FILE *out) {
     for (int i = 0; i < n; i ++) {
-        free(a[i]);
-    }
-    free(a);
-}
-
-void verificare_fisier(FILE *f) {
-    if (f == NULL) {
-        fprintf(stderr, "Eroare fisier\n");
-        exit(1);
+        for (int j = 0; j < m; j ++) {
+            fprintf(out, "%d ", a[i][j]);
+        }
+        fprintf(out, "\n");
     }
 }
 
-void citire_matrice(FILE *f, Matrice mat) {
-    for (int i = 0; i < mat.n; i++) {
-        for (int j = 0; j < mat.m; j ++) {
-            fscanf(f,"%d", &mat.a[i][j]);
+void retine_solutia(Matrice *mat) {
+    for (int i = 0; i < mat->n; i ++) {
+        for (int j = 0; j < mat->m; j ++) {
+            mat->c[i][j] = mat->b[i][j];
         }
     }
 }
-
-void afisare_sol(FILE *out, Matrice mat) {
-    if (mat.c == NULL) {
-        printf("Nu exista solutie\n");
-        exit(1);
-    }
-    for (int i = 0; i < mat.n; i++) {
-        for (int j = 0; j < mat.m; j++) {
-            fprintf(out,"%d ",mat.c[i][j]);
-        }
-        fprintf(out,"\n");
-    }
-}
-
 
 int main(int argc, char **argv) {
     if (argc != 3) {
-        fprintf(stderr, "Nr insuficient de argumente\n");
+        fprintf(stderr, "Nr incorect de argumente\n");
         exit(1);
     }
-    FILE *in = fopen(argv[1], "r");
-    verificare_fisier(in);
-    FILE *out = fopen(argv[2], "w");
-    verificare_fisier(out);
-
-    //alocare in memorie matrici
-    Matrice mat;
-    fscanf(in,"%d %d", &mat.n, &mat.m);   //ar trebui verificat si malloc
-    mat.a = malloc(sizeof(int *) * mat.n);
-    mat.c = malloc(sizeof(int *) * mat.n);
-    mat.b = calloc(mat.n, sizeof(int *));
-    for (int i = 0; i < mat.n; i++) {
-        mat.a[i] = malloc(sizeof(int) * mat.m);
-        mat.c[i] = malloc(sizeof(int) * mat.m);
-        mat.b[i] = calloc(mat.m, sizeof(int));
+    FILE *f = fopen(argv[1], "r");
+    if (f == NULL) {
+        perror("Eroare fisier citire");
+        exit(1);
     }
 
-    citire_matrice(in, mat);
+    FILE *out = fopen(argv[2], "w");
+    if (out == NULL) {
+        perror("Eroare fisier iesire");
+        exit(1);
+    }
 
-    Bk(mat, 0,0,1);
-    afisare_sol(out, mat);
-    eliberare(mat.a, mat.n);
-    eliberare(mat.b, mat.n);
-    eliberare(mat.c, mat.n);
-    fclose(in);   //ar trebui verificat si fclose
+    Matrice mat;
+    fscanf(f, "%d %d", &mat.n, &mat.m);
+    construire_matrice(&mat, f);
+    int sol = 0;
+    Bk(&mat, 0, 0, 1, &sol, out);
+   // fprintf(out, "%d\n", sol);
+    afisare_matrice(mat.c, mat.n, mat.m, out);
+
+    fclose(f);
     fclose(out);
     return 0;
 }
