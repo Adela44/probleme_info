@@ -1,0 +1,37 @@
+   Desertul - matrice N x M
+
+   0 - nisip stabil (zona sigura)
+   1 - nisip instabil (zona interzisa)
+   2 - punct de plecare
+   3 - destinatie
+   4 - zona stancoasa ofera protectie
+   5 - zona cu mirodenie (melanj)
+
+   pas pe doi de 0 (nisip stabil) -> riscul creste
+   nu ai voie mai mult de k pasi pe 0
+   pasirea pe zona 4 -> resetare contor risc (pasi periculosi)
+
+   Paul porneste cu o Energie E
+   La fiecare pas consuma:
+
+   - 1 -> celulele 0, 2, 3, 5
+   - 2 -> celulele 4
+
+   Daca E -> 0, traseul devine invalid
+
+   Celulele de tip 5 pot fi vizitate o singura data per traseu
+   La prima vizitare a unei celule 5, paul castiga +B puncte de energie
+
+   Energia nu poate depasi valoarea E initiala
+
+   Construiti un program care determina toate traseele valide de la 2 la 3 care respecta toate constrangerile
+   pentru fiecare traseu: succesiunea de pozitii parcurse + energia ramasa pana la sosire
+   + nr total de trasee valide
+
+   Datele se citesc dintr-un fisier care contine:
+
+   N, M - dimensiunile matricei
+   K - nr de pasi consecutivi pe nisip stabil (0)
+   E - energia initiala
+   B - bonusul de energie obtinut din melanj
+   Matrice N x M cu valori din {0, 1, 2, 3, 4, 5}
