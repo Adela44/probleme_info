@@ -72,12 +72,12 @@ void date_teleportare(Matrice *mat, int ti[][20],int tj[][20]) {
                  else {
                      int i1 = ap_i[val];
                      int j1 = ap_j[val];
+                                    //Exemplu de valori:
+                     ti[i][j] = i1; ///ti[0][3] = 3;
+                     tj[i][j] = j1; //tj[0][3] = 2;
 
-                     ti[i][j] = i1;
-                     tj[i][j] = j1;
-
-                     ti[i1][j1] = i;
-                     tj[i1][j1] = j;
+                     ti[i1][j1] = i; //ti[3][2] = 0;
+                     tj[i1][j1] = j; //tj[3][2] = 3
                  }
              }
         }
@@ -117,23 +117,23 @@ int valid(Matrice *mat, int i, int j, int baterie, int *baterie_noua) {
 void Bk(Matrice *mat, int i, int j, int baterie, int pas, int ti[][20], int tj[][20]) {
 
     static int mini = 500;
-    mat->b[i][j] = pas;
+    mat->b[i][j] = pas; //marcare pozitie
 
-    // teleport instant
+    // teleportare instanta
     if (isdigit(mat->a[i][j])) {
         int it = ti[i][j];
         int jt = tj[i][j];
 
-        if (mat->b[it][jt] == 0) {
+        if (mat->b[it][jt] == 0) { //daca nu am pasit inca pe acest pas
             pas++;
-            mat->b[it][jt] = pas;
-            i = it;
+            mat->b[it][jt] = pas; //marcam pasul
+            i = it; //update la coordonate
             j = jt;
         }
     }
 
     if (mat->a[i][j] == 'E') {
-        if (pas < mini) {
+        if (pas < mini) { //solutia cu minimul de pasi
             copiere_solutie(mat);
             mini = pas;
         }
@@ -145,13 +145,12 @@ void Bk(Matrice *mat, int i, int j, int baterie, int pas, int ti[][20], int tj[]
 
             int baterie_noua;
             if (valid(mat, i_nou, j_nou, baterie, &baterie_noua)) {
-                Bk(mat, i_nou, j_nou, baterie_noua,
-                   pas + 1, ti, tj);
+                Bk(mat, i_nou, j_nou, baterie_noua, pas + 1, ti, tj);
             }
         }
     }
 
-    mat->b[i][j] = 0;
+    mat->b[i][j] = 0; //revenire
 }
 
 void afis_sol(Matrice *mat, FILE *out) {
