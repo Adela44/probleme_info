@@ -1,0 +1,18 @@
+Cerința
+
+Într-un magazin sunt n obiecte;
+pentru fiecare se cunoaște greutatea G și valoarea V.
+Un hoț intră în magazin având un rucsac ce poate transporta o greutate maximă GMax.
+ El va fura anumite obiecte, sau porțiuni de obiecte, astfel încât suma greutăților obiectelor furate să nu depășească GMax.
+
+Să se stabilească câștigul maxim pe care îl poate obține hoțul.
+Câștigul este egal cu suma valorilor obiectelor furate.
+Câștigul adus de o fracțiune de obiect este direct proporțional cu greutatea fracțiunii.
+
+Date de intrare
+
+Programul citește de la tastatură numerele naturale n GMax,
+iar apoi n perechi de valori naturale G V, reprezentând greutatea, respectiv valoarea fiecărui obiect.
+Date de ieșire
+
+Programul va afișa pe ecran numărul C, reprezentând câștigul maxim pe care îl poate obține hoțul.
